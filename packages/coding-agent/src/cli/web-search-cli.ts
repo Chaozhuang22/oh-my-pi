@@ -17,6 +17,7 @@ export interface SearchCommandArgs {
 	recency?: "day" | "week" | "month" | "year";
 	limit?: number;
 	expanded: boolean;
+	json?: boolean;
 }
 
 const RECENCY_OPTIONS: SearchCommandArgs["recency"][] = ["day", "week", "month", "year"];
@@ -36,9 +37,12 @@ export function parseSearchArgs(args: string[]): SearchCommandArgs | undefined {
 	};
 
 	const positional: string[] = [];
-
 	for (let i = 1; i < args.length; i++) {
 		const arg = args[i];
+		if (arg === "--") {
+			positional.push(...args.slice(i + 1));
+			break;
+		}
 		if (arg === "--model") {
 			result.model = args[++i];
 		} else if (arg.startsWith("--model=")) {
@@ -47,6 +51,8 @@ export function parseSearchArgs(args: string[]): SearchCommandArgs | undefined {
 			result.recency = args[++i] as SearchCommandArgs["recency"];
 		} else if (arg === "--limit" || arg === "-l") {
 			result.limit = Number.parseInt(args[++i], 10);
+		} else if (arg === "--json") {
+			result.json = true;
 		} else if (arg === "--compact") {
 			result.expanded = false;
 		} else if (!arg.startsWith("-")) {
@@ -80,7 +86,7 @@ export async function runSearchCommand(cmd: SearchCommandArgs): Promise<void> {
 
 	await Settings.init({ cwd: getProjectDir() });
 
-	await initTheme();
+	if (!cmd.json) await initTheme();
 
 	const params: SearchQueryParams = {
 		query: cmd.query,
@@ -90,6 +96,12 @@ export async function runSearchCommand(cmd: SearchCommandArgs): Promise<void> {
 	};
 
 	const result = await runSearchQuery(params);
+	if (cmd.json) {
+		// Single machine-readable envelope: full SearchResponse (sources, provider, model, usage) plus optional error.
+		process.stdout.write(`${JSON.stringify(result.details)}\n`);
+		if (result.details?.error) process.exitCode = 1;
+		return;
+	}
 	const component = renderSearchResult(result, { expanded: cmd.expanded, isPartial: false }, theme, {
 		query: cmd.query,
 		maxAnswerLines: cmd.expanded ? undefined : 6,
@@ -118,6 +130,7 @@ ${chalk.bold("Options:")}
   --recency <value>   Recency filter (when supported): ${RECENCY_OPTIONS.join(", ")}
   -l, --limit <n>     Max results to return
   --compact           Render condensed output
+  --json              Write one JSON envelope {response, error?} to stdout instead of rendered text
   -h, --help          Show this help
 
 ${chalk.bold("Query directives:")}

@@ -21,6 +21,7 @@ export default class Search extends Command {
 		recency: Flags.string({ description: "Recency filter", options: RECENCY }),
 		limit: Flags.integer({ char: "l", description: "Max results to return" }),
 		compact: Flags.boolean({ description: "Render condensed output" }),
+		json: Flags.boolean({ description: "Write one JSON envelope {response, error?} to stdout" }),
 	};
 
 	async run(): Promise<void> {
@@ -33,6 +34,7 @@ export default class Search extends Command {
 			recency: flags.recency as SearchCommandArgs["recency"],
 			limit: flags.limit,
 			expanded: !flags.compact,
+			json: flags.json,
 		};
 
 		await runSearchCommand(cmd);

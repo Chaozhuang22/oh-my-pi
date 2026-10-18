@@ -288,7 +288,7 @@ Run `omp <command> --help` for each command's own flags and examples.
 | `toks` | Count file or text tokens with the embedded offline tokenizers. | |
 | `ttsr` | Inspect and test Time-Traveling Stream Rules (TTSR). (Covers the CLI command; the [TTSR feature](./ttsr-injection-lifecycle.md) is documented separately.) | |
 | `worktree`, `wt` | Add, list, or clear git worktrees; uses clone-first behavior when enabled. | |
-| `search`, `q`, `web-search` | Test web search providers from the CLI. | [web_search tool](./tools/web_search.md) |
+| `search`, `q`, `web-search` | Test web search providers from the CLI; `--json` writes one `{response, error?}` envelope to stdout (exit 1 when `error` is set) instead of rendered text. | [web_search tool](./tools/web_search.md) |
 
 > `install`, `join`, `browser-relay`, `auth-gateway`, and `tiny-models` are also
 > reachable through related mechanisms (the `plugin` command, the `/join` slash
